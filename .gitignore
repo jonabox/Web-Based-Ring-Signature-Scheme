@@ -1,3 +1,6 @@
+# Python
+__pycache__/
+server.pyc
 # Logs
 logs
 *.log
