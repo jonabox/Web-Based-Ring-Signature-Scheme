@@ -29,6 +29,7 @@ class Signer:
             sk: secret key of the s-th ring member.
         """
         self.pks = pks
+        self.ring_size = len(self.pks)
         self.s = s
         self.sk = sk
 
@@ -54,8 +55,14 @@ class Signer:
         v = secrets.randbits(b)
 
         # Step 3: pick random x_i's for all other ring members.
-        x_i = [secrets.randbits(b) for i in range(len(pks) - 1)]
-        y_i = []
+        x_i = [secrets.randbits(b) for i in range(self.ring_size - 1)]
+        y_i = [self._g(self.pks[i], x_i[i]) for i in range(self.ring_size)]
+
+        # Step 4: solve ring equation for y_s.
+
+        # Step 5: invert g_s(y_s) to find x_s, using the trapdoor (i.e., SK).
+
+        # Step 6: output the ring signature.
 
     def _g(self, pk, m):
         """
@@ -72,12 +79,24 @@ class Signer:
         q, r = int(m/n), m - q*n
 
         if (q + 1).bit_length()  < b - 1:
-            return q * pk.key_size + pk.encrypt(m, padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(), label=None))
+            pk_nums = pk.public_numbers()
+            return q * pk.key_size + pow(m, pk_nums.e, pk_nums.key_size)
         else:
             return m
 
+    def _c(self, y_i, v):
+        """
+        Solves the ring equation for y_s.
+
+        Args:
+            y_i: g_i(x_i) for every ring member i.
+            v: glue value.
+
+        Returns:
+            The only value g_s satisfying the ring equation for all values of
+            y_i and v.
+        """
+        pass
 
 class Verifier:
 
