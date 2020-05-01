@@ -1,7 +1,7 @@
-#####################################################################
+################################################################################
 #
 # Library for the implementation of RSA-based ring signatures.
-# Utility functions to sign and verify.
+# Utility functions to sign messages.
 #
 # Original protocol: www.iacr.org/archive/asiacrypt2001/22480554.pdf
 #
@@ -10,7 +10,8 @@
 # Note: unless otherwise stated, all keys are RSAPublicKey and RSAPrivateKey
 #       objects, from the "cryptography" package. Imported keys must be
 #       converted to this format before being used.
-#####################################################################
+#
+################################################################################
 import secrets
 
 from cryptography.hazmat.backends import default_backend
@@ -95,20 +96,5 @@ class Signer:
         Returns:
             The only value g_s satisfying the ring equation for all values of
             y_i and v.
-        """
-        pass
-
-class Verifier:
-
-    def ring_verify(self, m, sigma):
-        """
-        Verifies if sigma is a valid ring signature for m.
-
-        Args:
-            m: the message that was signed.
-            sigma: the ring signature for m, which contains all PKs of ring members.
-
-        Returns:
-            True if the signature is valid, and False otherwise.
         """
         pass
