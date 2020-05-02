@@ -18,9 +18,11 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 
+from crypto_utils import Trapdoor_Perm
+
 
 class Signer:
-    def __init__(self, m, pks, s, sk):
+    def __init__(self, pks, s, sk):
         """
         Used to sign messages.
 
@@ -51,6 +53,7 @@ class Signer:
         digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
         digest.update(m)
         k = digest.finalize()
+        enc_oracle = Trapdoor_Perm(k)
 
         # Step 2: pick a random glue value.
         v = secrets.randbits(b)
@@ -60,6 +63,7 @@ class Signer:
         y_i = [self._g(self.pks[i], x_i[i]) for i in range(self.ring_size)]
 
         # Step 4: solve ring equation for y_s.
+        y_s = self._c(y_i, v, enc_oracle)
 
         # Step 5: invert g_s(y_s) to find x_s, using the trapdoor (i.e., SK).
 
@@ -85,16 +89,23 @@ class Signer:
         else:
             return m
 
-    def _c(self, y_i, v):
+    def _c(self, y_i, v, enc_oracle):
         """
         Solves the ring equation for y_s.
 
         Args:
             y_i: g_i(x_i) for every ring member i.
             v: glue value.
+            enc_oracle: trapdoor permutation oracle.
 
         Returns:
             The only value g_s satisfying the ring equation for all values of
             y_i and v.
         """
-        pass
+        y_enc, y_dec = v, v
+        for j in range(self.s):
+            y_enc = enc_oracle.eval(y_enc ^ y_i[j])
+        for p in range(self.ring_size - 1, self.s, -1):
+            y_dec = enc_oracle.invert(y_dec ^ y_i[p])
+
+        return y_enc ^ y_dec
