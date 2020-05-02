@@ -27,11 +27,13 @@ class Signer:
         Used to sign messages.
 
         Args:
-            pks: (ordered) list of public keys. [PK_1, ... , PK_r.]
+            pks: (ordered) list of public keys. [PK_1, ... , PK_r].
             s: index of the actual signer (who's public key is PK_s).
+                0 <= s <= r - 1.
             sk: secret key of the s-th ring member.
         """
         self.pks = pks
+        self.pk = pks[0]
         self.ring_size = len(self.pks)
         self.s = s
         self.sk = sk
@@ -60,32 +62,43 @@ class Signer:
 
         # Step 3: pick random x_i's for all other ring members.
         x_i = [secrets.randbits(b) for i in range(self.ring_size - 1)]
-        y_i = [self._g(self.pks[i], x_i[i]) for i in range(self.ring_size)]
+        y_i = [self._g(x_i[i], self.pks[i].public_numbers()) \
+                for i in range(self.ring_size)]
 
         # Step 4: solve ring equation for y_s.
         y_s = self._c(y_i, v, enc_oracle)
 
         # Step 5: invert g_s(y_s) to find x_s, using the trapdoor (i.e., SK).
+        x_s = self._g(y_s, self.sk.public_numbers(), True)
+        x_i.insert(s, x_s)
 
         # Step 6: output the ring signature.
+        return self.pks + [v] + x_i
 
-    def _g(self, pk, m):
+    def _g(self, m, pk_nums, invert=False):
         """
         The extended trap-door permutation over Z_{n_i}.
 
         Args:
-            pk: the publc key associated with a particular ring member. This
-                carries the modulus and encryption exponent.
-            m: the message to be evaluated at g.
+            m: the message/output to be evaluated at g or g^-1, respectively
+                (depending on the 'invert' flag).
+            pk_nums: the public key (numbers) associated with a particular ring
+                    member. This is a RSAPublicNumbers object, which carries the
+                    modulus and encryption exponent.
+            invert: if set to True, use trapdoor (SK) to invert. Otherwise,
+                    simply evaluate.
 
         Returns:
-            g_i(m), As defined on the spec.
+            g_i(m), As defined on the spec, or g^-1_i(m) (depending on the
+            'invert' flag.)
         """
         q, r = int(m/n), m - q*n
 
         if (q + 1).bit_length()  < b - 1:
-            pk_nums = pk.public_numbers()
-            return q * pk.key_size + pow(m, pk_nums.e, pk_nums.key_size)
+            # This is safe to do: this code will only run locally on the
+            # machine of the person that holds the secret key.
+            exponent = pk_nums.e if not invert else self.sk.private_numbers().d
+            return q * pk_nums.key_size + pow(m, exponent, pk_nums.key_size)
         else:
             return m
 
