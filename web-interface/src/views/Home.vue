@@ -1,18 +1,26 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    Home. {{ key }}
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-
+import axios from "axios";
 export default {
-  name: 'Home',
-  components: {
-    HelloWorld
+  name: "home",
+  data() {
+    return {
+      key: "key not yet updated."
+    };
+  },
+  created: function() {
+    axios
+      .get("http://127.0.0.1:5000/key")
+      .then(response => {
+        console.log(response);
+        this.key = response.data;
+      })
+      .catch(error => console.log(error));
   }
-}
+};
 </script>

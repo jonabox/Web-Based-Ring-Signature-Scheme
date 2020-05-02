@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 
 #set debug; setting to true allows for hot reload (automatic code deployment)
-DEBUG = False
+DEBUG = True
 
 #instantiate app
 app = Flask(__name__)
@@ -15,6 +15,11 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
+
+#key route
+@app.route('/key')
+def key():
+    return 'key from crypto server: 12343432'
 
 if __name__ == '__main__':
     #runs the server
