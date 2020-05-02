@@ -11,7 +11,7 @@
 #
 ################################################################################
 
-class Trapdoor_Perm:
+class Pseudorandom_Perm:
     def __init__(self, k):
         """
         Pseudorandom trapdoor permutation.

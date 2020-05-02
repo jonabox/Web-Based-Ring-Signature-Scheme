@@ -15,16 +15,16 @@
 import secrets
 
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 
 from crypto_utils import Trapdoor_Perm
+from ring.py import Ring
 
 
-class Signer:
+class Signer(Ring):
     def __init__(self, pks, s, sk):
         """
-        Used to sign messages.
+        Used to sign messages. Extends the 'Ring' interface.
 
         Args:
             pks: (ordered) list of public keys. [PK_1, ... , PK_r].
@@ -32,14 +32,9 @@ class Signer:
                 0 <= s <= r - 1.
             sk: secret key of the s-th ring member.
         """
-        self.pks = pks
-        self.pk = pks[0]
-        self.ring_size = len(self.pks)
+        super().__init__(pks)
         self.s = s
         self.sk = sk
-
-        # Find exponent of smallest power of 2 greater than all moduli.
-        self.b = (max([pk.key_size for pk in pks]) - 1).bit_length()
 
     def ring_sign(self):
         """
@@ -69,45 +64,19 @@ class Signer:
         y_s = self._c(y_i, v, enc_oracle)
 
         # Step 5: invert g_s(y_s) to find x_s, using the trapdoor (i.e., SK).
-        x_s = self._g(y_s, self.sk.public_numbers(), True)
+        x_s = self._g(y_s, self.sk.public_numbers(), self.sk)
         x_i.insert(s, x_s)
 
         # Step 6: output the ring signature.
         return self.pks + [v] + x_i
 
-    def _g(self, m, pk_nums, invert=False):
-        """
-        The extended trap-door permutation over Z_{n_i}.
-
-        Args:
-            m: the message/output to be evaluated at g or g^-1, respectively
-                (depending on the 'invert' flag).
-            pk_nums: the public key (numbers) associated with a particular ring
-                    member. This is a RSAPublicNumbers object, which carries the
-                    modulus and encryption exponent.
-            invert: if set to True, use trapdoor (SK) to invert. Otherwise,
-                    simply evaluate.
-
-        Returns:
-            g_i(m), As defined on the spec, or g^-1_i(m) (depending on the
-            'invert' flag.)
-        """
-        q, r = int(m/n), m - q*n
-
-        if (q + 1).bit_length()  < b - 1:
-            # This is safe to do: this code will only run locally on the
-            # machine of the person that holds the secret key.
-            exponent = pk_nums.e if not invert else self.sk.private_numbers().d
-            return q * pk_nums.key_size + pow(m, exponent, pk_nums.key_size)
-        else:
-            return m
 
     def _c(self, y_i, v, enc_oracle):
         """
         Solves the ring equation for y_s.
 
         Args:
-            y_i: g_i(x_i) for every ring member i.
+            y_i: g_i(x_i) for every ring member i (except s).
             v: glue value.
             enc_oracle: trapdoor permutation oracle.
 
