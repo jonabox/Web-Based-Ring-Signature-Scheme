@@ -88,6 +88,9 @@ class Signer(Ring):
         for j in range(self.s):
             y_enc = enc_oracle.eval(y_enc ^ y_i[j])
         for p in range(self.ring_size - 1, self.s, -1):
-            y_dec = enc_oracle.invert(y_dec ^ y_i[p])
+            y_dec = y_i[p] ^ enc_oracle.invert(y_dec)
 
-        return y_enc ^ y_dec
+        # Perform the last iteration to solve for y_s
+        y_s = y_enc ^ enc_oracle.invert(y_dec)
+        
+        return y_s

@@ -25,7 +25,7 @@ class Verifier(Ring):
         """
         self.pks = pks
         # Find exponent of smallest power of 2 greater than all moduli.
-        self.b = (max([pk.key_size for pk in pks]) - 1).bit_length()
+        self.b = (max([pk.key_size for pk in pks]) - 1).bit_length() # TODO: This is duplicated code from the Ring's init
 
     def ring_verify(self, m, sigma):
         """
@@ -39,6 +39,11 @@ class Verifier(Ring):
         Returns:
             True if the signature is valid, and False otherwise.
         """
+        # TODO: I need to check if this class is state-less, as it should be. Right now, the public keys
+        # are part of the state rather than being a part of the input sigma
+
+        # TODO: I don't like the +1 in the sigma to offset the included `v` and the sigma[0] at the end
+        
         # Step 1: compute trapdoor permutations.
         y_i = [self._g(sigma[i + 1], self.pks[i].public_numbers()) \
                 for i in range(self.ring_size)]
@@ -64,8 +69,8 @@ class Verifier(Ring):
         Returns:
             True if the y_i's and v satisfy the ring equation.
         """
-        y_enc
-        for j in range(self.r):
+        y_enc = v
+        for j in range(self.ring_size):
             y_enc = enc_oracle.eval(y_enc ^ y_i[j])
 
         return y_enc == v
