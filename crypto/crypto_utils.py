@@ -23,21 +23,23 @@ def byte_xor(ba1, ba2):
     return bytes([_a ^ _b for _a, _b in zip(ba1, ba2)])
 
 class Trapdoor_Perm:
-    def __init__(self, k):
+    def __init__(self, k, iv=None):
         """
         Pseudorandom trapdoor permutation.
 
+        AES-CBC with fixed IV between encryptions.
+
         Args:
             k: key of the PTP.
+            iv: the iv to be used for CBC mode, or None if a fresh one will be
+                used.
         """
         # Sanity check the input key which must be 32 bytes
         assert(type(k) == bytes)
         assert(len(k) == 32)
 
-        # Create a random IV to use for the encryption
-        #
-        # TODO: This IV should probably be passed to the validator
-        self.iv = os.urandom(16)
+        # Create a random IV to use for the encryption, if none was specified.
+        self.iv = os.urandom(16) if not iv else iv
 
         # Save the key
         self.k = k

@@ -19,6 +19,7 @@ from cryptography.hazmat.primitives import serialization
 
 import random
 from signer import Signer
+from verifier import Verifier
 
 def generate_pub_keys(n_keys):
     """ Generates `n_keys` number of RSAPublicKey keys
@@ -63,9 +64,14 @@ def test_signing():
 
     # Sign a message
     msg = b"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
-    sigma = signer.ring_sign(msg)
+    sigma, iv = signer.ring_sign(msg)
 
-    print(sigma)
+    # Create a 'Verifier' object.
+    verifier = Verifier(pks)
+
+    # Verify the sinature.
+    out = verifier.ring_verify(msg, sigma, iv)
+    print(out)
 
 if __name__ == "__main__":
     test_signing()

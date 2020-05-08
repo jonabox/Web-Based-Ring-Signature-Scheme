@@ -28,7 +28,7 @@ class Verifier(Ring):
         """
         super().__init__(pks)
 
-    def ring_verify(self, m, sigma):
+    def ring_verify(self, m, sigma, iv):
         """
         Verifies if sigma is a valid ring signature for m.
 
@@ -43,10 +43,10 @@ class Verifier(Ring):
         # TODO: I need to check if this class is state-less, as it
         # should be. Right now, the public keys are part of the state
         # rather than being a part of the input sigma
-        
-        v = sigma[0]
-        x_i = sigma[1:]
-        
+
+        v = sigma[self.ring_size]
+        x_i = sigma[self.ring_size + 1:]
+
         # Step 1: compute trapdoor permutations.
         y_i = [self._g(x_i[i], self.pks[i].public_numbers()) \
                 for i in range(self.ring_size)]
@@ -55,7 +55,7 @@ class Verifier(Ring):
         digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
         digest.update(m)
         k = digest.finalize()
-        enc_oracle = Trapdoor_Perm(k)
+        enc_oracle = Trapdoor_Perm(k, iv)
 
         # Step 3: verify the ring equation.
         return self._check_c(y_i, v, enc_oracle)
