@@ -38,14 +38,14 @@ class Trapdoor_Perm:
         #
         # TODO: This IV should probably be passed to the validator
         self.iv = os.urandom(16)
-        
+
         # Save the key
         self.k = k
-        
+
         self.cipher = Cipher(algorithms.AES(self.k),
                              modes.CBC(self.iv),
                              backend=default_backend())
-        
+
     def eval(self, m):
         """
         Evaluate permutation. I.e., E_k(m).
@@ -60,11 +60,11 @@ class Trapdoor_Perm:
         # Sanity check
         assert(type(m) == int)
 
-        # TODO: 64 is temporary placeholder
+        # TODO: 1024 is temporary placeholder
         encryptor = self.cipher.encryptor()
-        ret = encryptor.update(m.to_bytes(64, "little")) + \
+        ret = encryptor.update(m.to_bytes(1024, "little")) + \
               encryptor.finalize()
-        
+
         return int.from_bytes(ret, "little")
 
     def invert(self, y):
@@ -82,7 +82,7 @@ class Trapdoor_Perm:
 
         # TODO: 64 is temporary placeholder
         decryptor = self.cipher.decryptor()
-        ret = decryptor.update(y.to_bytes(64, "little")) + \
+        ret = decryptor.update(y.to_bytes(1024, "little")) + \
               decryptor.finalize()
-        
+
         return int.from_bytes(ret, "little")

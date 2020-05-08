@@ -18,13 +18,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 import random
-from signer import Signer 
+from signer import Signer
 
 def generate_pub_keys(n_keys):
     """ Generates `n_keys` number of RSAPublicKey keys
     """
     KEY_SIZE = 2048
-    
+
     ret = []
     for i in range(n_keys):
         private_key = rsa.generate_private_key(
@@ -41,7 +41,7 @@ def generate_pub_keys(n_keys):
 
 def test_signing():
     N_PLAYERS = 3
-    
+
     # Generate all of the public keys
     pks = generate_pub_keys(N_PLAYERS)
 
@@ -66,6 +66,6 @@ def test_signing():
     sigma = signer.ring_sign(msg)
 
     print(sigma)
-    
+
 if __name__ == "__main__":
     test_signing()

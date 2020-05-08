@@ -69,7 +69,7 @@ class Signer(Ring):
                 rand_x = secrets.randbits(self.b)
                 x_i.append(rand_x)
                 y_i.append(self._g(rand_x, self.pks[i].public_numbers()))
-                
+
         # Step 4: solve ring equation for y_s.
         y_s = self._c(y_i, v, enc_oracle)
 
@@ -102,5 +102,5 @@ class Signer(Ring):
 
         # Perform the last iteration to solve for y_s
         y_s = y_enc ^ enc_oracle.invert(y_dec)
-        
+
         return y_s
