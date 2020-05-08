@@ -15,6 +15,9 @@
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
+from crypto_utils import Trapdoor_Perm
+from ring import Ring
+
 class Verifier(Ring):
     def __init__(self, pks):
         """
@@ -37,9 +40,10 @@ class Verifier(Ring):
         Returns:
             True if the signature is valid, and False otherwise.
         """
-        # TODO: I need to check if this class is state-less, as it should be. Right now, the public keys
-        # are part of the state rather than being a part of the input sigma
-
+        # TODO: I need to check if this class is state-less, as it
+        # should be. Right now, the public keys are part of the state
+        # rather than being a part of the input sigma
+        
         v = sigma[0]
         x_i = sigma[1:]
         

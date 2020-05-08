@@ -26,7 +26,7 @@ class Ring:
 
         # Find exponent of smallest power of 2 greater than all moduli.
         self.b = (max([pk.key_size for pk in pks]) - 1).bit_length()
-
+        
     def _g(self, m, pk_nums, sk=None):
         """
         The extended trap-door permutation over Z_{n_i}.
@@ -44,10 +44,15 @@ class Ring:
             g_i(m), As defined on the spec, or g^-1_i(m) (depending on if 'sk'
             is set).
         """
-        n = pk_nums.key_size
-        q, r = int(m / n), m - q * n
+        n = pk_nums.n
+        q = int(m / n)
+        r = m - q * n
 
-        if (q + 1).bit_length() < self.b - 1:
+        # TODO: Maybe a more efficient way to do this if statement
+        if (q + 1) * n <= 2 ** self.b:
+            # TODO: Isn't this pow(...) stuff like rolling our own
+            # crypto? Shouldn't the trapdoor and invert be pre-done
+            
             # This is safe to do: this code will only run locally on the
             # machine of the person that holds the secret key.
             exponent = pk_nums.e if not sk else sk.private_numbers().d
