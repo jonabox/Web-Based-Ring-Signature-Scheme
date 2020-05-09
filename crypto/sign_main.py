@@ -73,7 +73,7 @@ def write_to_file(sigma, output_file):
             output_file.write(elt)
 
 
-def sign(m, pks_pem, s, sk_pem, output_file):
+def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
     """
     Crafts a ring signature for the message m, based on the SK and PK(s).
 
@@ -88,11 +88,13 @@ def sign(m, pks_pem, s, sk_pem, output_file):
     Returns:
         The signature.
     """
+    # TODO: validate inputs.
+
     pks = process_pks(pks_pem)
 
     s = int(s)
 
-    sk_password = getpass.getpass(prompt="Secret key password:")
+    sk_password = pwd if pwd else getpass.getpass(prompt="Secret key password:")
     sk = None
     with open(sk_pem, "rb") as key_file:
         sk = serialization.load_pem_private_key(
@@ -102,7 +104,6 @@ def sign(m, pks_pem, s, sk_pem, output_file):
 
     signer = Signer(pks, s, sk)
 
-    # TODO: RSAPublicKey -> PEM format.
     sigma = signer.ring_sign(m.encode())
     write_to_file(sigma, output_file)
 
