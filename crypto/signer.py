@@ -78,8 +78,7 @@ class Signer(Ring):
         x_i[self.s] = x_s
 
         # Step 6: output the ring signature, and the IV.
-        return self.pks + [v] + x_i, enc_oracle.iv
-
+        return self.pks + [v] + x_i + [enc_oracle.iv]
 
     def _c(self, y_i, v, enc_oracle):
         """

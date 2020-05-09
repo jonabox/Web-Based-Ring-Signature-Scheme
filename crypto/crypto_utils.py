@@ -64,10 +64,10 @@ class Trapdoor_Perm:
 
         # TODO: 1024 is temporary placeholder
         encryptor = self.cipher.encryptor()
-        ret = encryptor.update(m.to_bytes(1024, "little")) + \
+        ret = encryptor.update(m.to_bytes(1024, "big")) + \
               encryptor.finalize()
 
-        return int.from_bytes(ret, "little")
+        return int.from_bytes(ret, "big")
 
     def invert(self, y):
         """
@@ -84,7 +84,7 @@ class Trapdoor_Perm:
 
         # TODO: 64 is temporary placeholder
         decryptor = self.cipher.decryptor()
-        ret = decryptor.update(y.to_bytes(1024, "little")) + \
+        ret = decryptor.update(y.to_bytes(1024, "big")) + \
               decryptor.finalize()
 
-        return int.from_bytes(ret, "little")
+        return int.from_bytes(ret, "big")

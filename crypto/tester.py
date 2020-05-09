@@ -21,6 +21,7 @@ import random
 from signer import Signer
 from verifier import Verifier
 
+
 def generate_pub_keys(n_keys):
     """ Generates `n_keys` number of RSAPublicKey keys
     """
@@ -39,6 +40,7 @@ def generate_pub_keys(n_keys):
         ret.append(public_key)
 
     return ret
+
 
 def test_signing():
     N_PLAYERS = 3
@@ -64,14 +66,15 @@ def test_signing():
 
     # Sign a message
     msg = b"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks"
-    sigma, iv = signer.ring_sign(msg)
+    sigma = signer.ring_sign(msg)
 
     # Create a 'Verifier' object.
     verifier = Verifier(pks)
 
     # Verify the sinature.
-    out = verifier.ring_verify(msg, sigma, iv)
+    out = verifier.ring_verify(msg, sigma[len(pks):])
     print(out)
+
 
 if __name__ == "__main__":
     test_signing()

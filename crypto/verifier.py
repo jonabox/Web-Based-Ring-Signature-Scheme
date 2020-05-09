@@ -28,14 +28,15 @@ class Verifier(Ring):
         """
         super().__init__(pks)
 
-    def ring_verify(self, m, sigma, iv):
+    def ring_verify(self, m, sigma):
         """
         Verifies if sigma is a valid ring signature for m.
 
         Args:
             m: the message that was signed.
-            sigma: the ring signature for m. Contains the glue value 'v', and
-                    the x_i's for all ring members, as defined in the protocol.
+            sigma: the ring signature for m. Contains the glue value 'v', the
+                    x_i's for all ring members (as defined in the protocol), and
+                    the IV for the trapdoor permutation.
 
         Returns:
             True if the signature is valid, and False otherwise.
@@ -43,9 +44,9 @@ class Verifier(Ring):
         # TODO: I need to check if this class is state-less, as it
         # should be. Right now, the public keys are part of the state
         # rather than being a part of the input sigma
-
-        v = sigma[self.ring_size]
-        x_i = sigma[self.ring_size + 1:]
+        v = sigma[0]
+        x_i = sigma[1:-1]
+        iv = sigma[-1]
 
         # Step 1: compute trapdoor permutations.
         y_i = [self._g(x_i[i], self.pks[i].public_numbers()) \
