@@ -11,15 +11,42 @@
 #
 ################################################################################
 
-class Pseudorandom_Perm:
-    def __init__(self, k):
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+import base64
+
+def byte_xor(ba1, ba2):
+    """ From https://nitratine.net/blog/post/xor-python-byte-strings/
+    """
+    return bytes([_a ^ _b for _a, _b in zip(ba1, ba2)])
+
+class Trapdoor_Perm:
+    def __init__(self, k, iv=None):
         """
         Pseudorandom trapdoor permutation.
 
+        AES-CBC with fixed IV between encryptions.
+
         Args:
             k: key of the PTP.
+            iv: the iv to be used for CBC mode, or None if a fresh one will be
+                used.
         """
+        # Sanity check the input key which must be 32 bytes
+        assert(type(k) == bytes)
+        assert(len(k) == 32)
+
+        # Create a random IV to use for the encryption, if none was specified.
+        self.iv = os.urandom(16) if not iv else iv
+
+        # Save the key
         self.k = k
+
+        self.cipher = Cipher(algorithms.AES(self.k),
+                             modes.CBC(self.iv),
+                             backend=default_backend())
 
     def eval(self, m):
         """
@@ -32,16 +59,32 @@ class Pseudorandom_Perm:
             The PTP  evaluated at m. Note that this is a deterministic
             computation.
         """
-        pass
+        # Sanity check
+        assert(type(m) == int)
+
+        # TODO: 1024 is temporary placeholder
+        encryptor = self.cipher.encryptor()
+        ret = encryptor.update(m.to_bytes(1024, "big")) + \
+              encryptor.finalize()
+
+        return int.from_bytes(ret, "big")
 
     def invert(self, y):
         """
         Inverts permutation. I.e., E_k^-1(y).
 
         Args:
-            m: message to be evaluated.
+            y: message to be inverted.
 
         Returns:
             The PTP inverted at y. That is, returns the value m s.t. E_k(m) = y.
         """
-        pass
+        # Sanity check
+        assert(type(y) == int)
+
+        # TODO: 64 is temporary placeholder
+        decryptor = self.cipher.decryptor()
+        ret = decryptor.update(y.to_bytes(1024, "big")) + \
+              decryptor.finalize()
+
+        return int.from_bytes(ret, "big")

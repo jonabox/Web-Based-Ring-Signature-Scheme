@@ -1,5 +1,5 @@
 # Web-Based-Ring-Signature-Scheme
-Final project for 6.857 (Applied Cryptography) based on Ring Signatures (https://en.wikipedia.org/wiki/Ring_signature)
+Final project for 6.857 (Applied Cryptography) based on Ring Signatures (www.iacr.org/archive/asiacrypt2001/22480554.pdf).
 
 # To Run:
 Install Flask:

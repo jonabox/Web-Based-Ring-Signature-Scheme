@@ -17,9 +17,8 @@ import secrets
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
-from crypto_utils import Trapdoor_Perm
-from ring.py import Ring
-
+from crypto_utils import Trapdoor_Perm, byte_xor
+from ring import Ring
 
 class Signer(Ring):
     def __init__(self, pks, s, sk):
@@ -36,7 +35,7 @@ class Signer(Ring):
         self.s = s
         self.sk = sk
 
-    def ring_sign(self):
+    def ring_sign(self, m):
         """
         Crafts a ring signature for the message m, based on the SK and PK(s).
 
@@ -53,23 +52,33 @@ class Signer(Ring):
         enc_oracle = Trapdoor_Perm(k)
 
         # Step 2: pick a random glue value.
-        v = secrets.randbits(b)
+        v = secrets.randbits(self.b)
 
         # Step 3: pick random x_i's for all other ring members.
-        x_i = [secrets.randbits(b) for i in range(self.ring_size - 1)]
-        y_i = [self._g(x_i[i], self.pks[i].public_numbers()) \
-                for i in range(self.ring_size)]
+        #
+        # Construct all of the `x_i` and `y_i``s except for those
+        # at index `self.s` which needs to be solved for
+        x_i = []
+        y_i = []
+        for i in range(self.ring_size):
+            if i == self.s:
+                # Still do not know what our values
+                x_i.append(None)
+                y_i.append(None)
+            else:
+                rand_x = secrets.randbits(self.b)
+                x_i.append(rand_x)
+                y_i.append(self._g(rand_x, self.pks[i].public_numbers()))
 
         # Step 4: solve ring equation for y_s.
         y_s = self._c(y_i, v, enc_oracle)
 
         # Step 5: invert g_s(y_s) to find x_s, using the trapdoor (i.e., SK).
-        x_s = self._g(y_s, self.sk.public_numbers(), self.sk)
-        x_i.insert(s, x_s)
+        x_s = self._g(y_s, self.pks[self.s].public_numbers(), self.sk)
+        x_i[self.s] = x_s
 
-        # Step 6: output the ring signature.
-        return self.pks + [v] + x_i
-
+        # Step 6: output the ring signature, and the IV.
+        return self.pks + [v] + x_i + [enc_oracle.iv]
 
     def _c(self, y_i, v, enc_oracle):
         """
@@ -85,9 +94,12 @@ class Signer(Ring):
             y_i and v.
         """
         y_enc, y_dec = v, v
-        for j in range(self.s):
+        for j in range(0, self.s):
             y_enc = enc_oracle.eval(y_enc ^ y_i[j])
         for p in range(self.ring_size - 1, self.s, -1):
-            y_dec = enc_oracle.invert(y_dec ^ y_i[p])
+            y_dec = y_i[p] ^ enc_oracle.invert(y_dec)
 
-        return y_enc ^ y_dec
+        # Perform the last iteration to solve for y_s
+        y_s = y_enc ^ enc_oracle.invert(y_dec)
+
+        return y_s

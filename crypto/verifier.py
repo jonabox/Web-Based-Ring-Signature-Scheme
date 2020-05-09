@@ -15,6 +15,9 @@
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
+from crypto_utils import Trapdoor_Perm
+from ring import Ring
+
 class Verifier(Ring):
     def __init__(self, pks):
         """
@@ -23,9 +26,7 @@ class Verifier(Ring):
         Args:
             pks: (ordered) list of public keys. [PK_1, ... , PK_r].
         """
-        self.pks = pks
-        # Find exponent of smallest power of 2 greater than all moduli.
-        self.b = (max([pk.key_size for pk in pks]) - 1).bit_length()
+        super().__init__(pks)
 
     def ring_verify(self, m, sigma):
         """
@@ -33,24 +34,32 @@ class Verifier(Ring):
 
         Args:
             m: the message that was signed.
-            sigma: the ring signature for m. Contains the glue value 'v', and
-                    the x_i's for all ring members, as defined in the protocol.
+            sigma: the ring signature for m. Contains the glue value 'v', the
+                    x_i's for all ring members (as defined in the protocol), and
+                    the IV for the trapdoor permutation.
 
         Returns:
             True if the signature is valid, and False otherwise.
         """
+        # TODO: I need to check if this class is state-less, as it
+        # should be. Right now, the public keys are part of the state
+        # rather than being a part of the input sigma
+        v = sigma[0]
+        x_i = sigma[1:-1]
+        iv = sigma[-1]
+
         # Step 1: compute trapdoor permutations.
-        y_i = [self._g(sigma[i + 1], self.pks[i].public_numbers()) \
+        y_i = [self._g(x_i[i], self.pks[i].public_numbers()) \
                 for i in range(self.ring_size)]
 
         # Step 2: get key.
         digest = hashes.Hash(hashes.SHA256(), backend=default_backend())
         digest.update(m)
         k = digest.finalize()
-        enc_oracle = Trapdoor_Perm(k)
+        enc_oracle = Trapdoor_Perm(k, iv)
 
         # Step 3: verify the ring equation.
-        return self._check_c(y_i, sigma[0], enc_oracle)
+        return self._check_c(y_i, v, enc_oracle)
 
     def _check_c(self, y_i, v, enc_oracle):
         """
@@ -64,8 +73,8 @@ class Verifier(Ring):
         Returns:
             True if the y_i's and v satisfy the ring equation.
         """
-        y_enc
-        for j in range(self.r):
+        y_enc = v
+        for j in range(self.ring_size):
             y_enc = enc_oracle.eval(y_enc ^ y_i[j])
 
         return y_enc == v
