@@ -40,7 +40,6 @@ def parse_signature_file(signature_file):
         for line in signature_file:
             # We finished reading all keys.
             if not key and not b"BEGIN PUBLIC KEY" in line:
-                print(line)
                 elts = line.split(b"==")
                 # Last element of elts is simply "\n".
                 for elt in elts[:-2]:
