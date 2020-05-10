@@ -1,15 +1,53 @@
 <template>
   <div class="home">
-    <v-file-input chips label="Attach public keys .PEM file" @change="onAddPublicKeys" accept=".pem"></v-file-input>
-    <v-text-field
-      prepend-icon="mdi-format-list-numbered"
-      label="Index of your public key within the public keys file"
-      v-model="index"
-    ></v-text-field>
-    <v-file-input chips label="Attach private key .PEM file" @change="onAddSecretKey" accept=".pem"></v-file-input>
-    <v-text-field prepend-icon="mdi-key" label="Enter password used for private key file" type="password" v-model="password"></v-text-field>
-    <v-text-field prepend-icon="mdi-text" label="Enter message to leak" v-model="message"></v-text-field>
-    <v-btn v-on:click="submitData()" color="primary">Submit</v-btn>
+    <v-tabs v-model="tab" background-color="transparent" grow>
+      <v-tab>Sign</v-tab>
+      <v-tab>Verify</v-tab>
+    </v-tabs>
+    <v-tabs-items v-model="tab">
+      <v-tab-item>
+        <v-card flat>
+          <v-file-input
+            chips
+            label="Attach public keys .PEM file"
+            @change="onAddPublicKeys"
+            accept=".pem"
+          ></v-file-input>
+          <v-text-field
+            prepend-icon="mdi-format-list-numbered"
+            label="Index of your public key within the public keys file"
+            v-model="index"
+          ></v-text-field>
+          <v-file-input
+            chips
+            label="Attach private key .PEM file"
+            @change="onAddSecretKey"
+            accept=".pem"
+          ></v-file-input>
+          <v-text-field
+            prepend-icon="mdi-key"
+            label="Enter password used for private key file"
+            type="password"
+            v-model="password"
+          ></v-text-field>
+          <v-text-field prepend-icon="mdi-text" label="Enter message to leak" v-model="message"></v-text-field>
+          <v-btn v-on:click="submitDataSign()" color="primary">Submit</v-btn>
+        </v-card>
+      </v-tab-item>
+      <v-tab-item>
+        <v-card flat>
+          <v-file-input
+            chips
+            label="Attach signature .PEM file"
+            @change="onAddSignature"
+            accept=".pem"
+          ></v-file-input>
+          <v-text-field prepend-icon="mdi-text" label="Enter leaked message" v-model="message"></v-text-field>
+          <v-btn v-on:click="submitDataVerify()" color="primary">Submit</v-btn>
+        </v-card>
+      </v-tab-item>
+    </v-tabs-items>
+
     <h3>Don't have any key pairs? Run the following commands:</h3>
     <br />
     <v-timeline dense>
@@ -40,9 +78,11 @@ export default {
   name: "home",
   data() {
     return {
+      tab: null,
       key: "key not yet updated.",
       pksFile: "",
       skFile: "",
+      signatureFile: "",
       index: "",
       message: "",
       password: ""
@@ -60,7 +100,7 @@ export default {
         .then(response => {
           console.log("Uploaded secret key!");
           console.log({ response });
-        })
+        });
     },
     onAddPublicKeys(file) {
       window.console.log(file);
@@ -73,9 +113,22 @@ export default {
         .then(response => {
           console.log("Uploaded public keys!");
           console.log({ response });
-        })
+        });
     },
-    submitData() {
+    onAddSignature(file) {
+      window.console.log(file);
+      this.signatureFile = file;
+      let formData = new FormData();
+      // add files to form data
+      formData.append("files", file, file.name);
+      axios
+        .post("http://127.0.0.1:5000/signature_file", formData)
+        .then(response => {
+          console.log("Uploaded signature file!");
+          console.log({ response });
+        });
+    },
+    submitDataSign() {
       let formData = new FormData();
 
       // add index and message to form data
@@ -83,11 +136,24 @@ export default {
       formData.append("message", this.message);
       formData.append("password", this.password);
 
-      // additional data
-      formData.append("test", "foo bar");
-
       axios
         .post("http://127.0.0.1:5000/signature", formData)
+        .then(response => {
+          console.log("Success!");
+          console.log({ response });
+        })
+        .catch(error => {
+          console.log({ error });
+        });
+    },
+    submitDataVerify() {
+      let formData = new FormData();
+
+      // add message to form data
+      formData.append("message", this.message);
+
+      axios
+        .post("http://127.0.0.1:5000/verification", formData)
         .then(response => {
           console.log("Success!");
           console.log({ response });

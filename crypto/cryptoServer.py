@@ -1,5 +1,6 @@
 import os
 from sign_main import sign
+from verify_main import verify
 
 from flask import Flask, request, redirect, url_for
 from flask_cors import CORS
@@ -51,9 +52,21 @@ def signature():
         index = request.form['index']
         message = request.form['message']
         password = request.form['password']
-        sign(message, "../uploads/public_keys.pem", index, "../uploads/secret_key.pem", "testOutput.txt", password )
-        print("done")
+        sign(message, "../uploads/public_keys.pem", index, "../uploads/secret_key.pem", "../output.pem", password )
         return "message has been signed!"
+
+@app.route('/verification', methods=['POST'])
+def verification():
+    if request.method == 'POST':
+        print(request.form)
+        # check if the post request has the file part
+        if 'message' not in request.form:
+            return 'No valid message', 400
+        message = request.form['message']
+        print("result:")
+        print(verify(message, "../uploads/signature.pem"))
+        print("done")
+        return "message has been verified!"
         
 
 @app.route('/secret_key', methods=['GET', 'POST'])
@@ -90,7 +103,7 @@ def upload_file():
         # check if the post request has the file part
         if 'files' not in request.files:
             return 'Not a valid file', 400
-        file = request.files['file']
+        file = request.files['files']
         # if user does not select file, browser also
         # submit an empty part without filename
         if file.filename == '':
@@ -110,6 +123,24 @@ def upload_file():
       <input type=submit value=Upload>
     </form>
     '''
+
+@app.route('/signature_file', methods=['POST'])
+def signature_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'files' not in request.files:
+            return 'Not a valid file', 400
+        file = request.files['files']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            return 'No selected file', 400
+        if file and allowed_file(file.filename):
+            filename = file.filename
+            file.save(os.path.join(
+                app.config['UPLOAD_FOLDER'], "signature.pem"))
+            return redirect(url_for('upload_file',
+                                    filename=filename))
 
 
 if __name__ == '__main__':

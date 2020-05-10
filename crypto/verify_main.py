@@ -39,7 +39,8 @@ def parse_signature_file(signature_file):
         key = b""
         for line in signature_file:
             # We finished reading all keys.
-            if not key and line != b"-----BEGIN PUBLIC KEY-----\n":
+            if not key and not b"BEGIN PUBLIC KEY" in line:
+                print(line)
                 elts = line.split(b"==")
                 # Last element of elts is simply "\n".
                 for elt in elts[:-2]:
@@ -51,9 +52,9 @@ def parse_signature_file(signature_file):
 
             else:
                 key += line
-                if line == b"-----BEGIN PUBLIC KEY-----\n":
+                if b"BEGIN PUBLIC KEY" in line:
                     key = line
-                elif line == b"-----END PUBLIC KEY-----\n":
+                elif b"END PUBLIC KEY" in line:
                     pk = serialization.load_pem_public_key(
                         key, backend=default_backend())
                     pks.append(pk)
