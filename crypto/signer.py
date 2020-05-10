@@ -34,6 +34,8 @@ class Signer(Ring):
         super().__init__(pks)
         self.s = s
         self.sk = sk
+        for i in range(self.ring_size):
+            print(i, self.pks[i].public_numbers().n == self.sk.public_key().public_numbers().n)
 
     def ring_sign(self, m):
         """
@@ -94,6 +96,7 @@ class Signer(Ring):
             y_i and v.
         """
         y_enc, y_dec = v, v
+
         for j in range(0, self.s):
             y_enc = enc_oracle.eval(y_enc ^ y_i[j])
         for p in range(self.ring_size - 1, self.s, -1):
@@ -101,5 +104,4 @@ class Signer(Ring):
 
         # Perform the last iteration to solve for y_s
         y_s = y_enc ^ enc_oracle.invert(y_dec)
-
         return y_s
