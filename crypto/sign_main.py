@@ -88,7 +88,8 @@ def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
     Returns:
         The signature.
     """
-    # TODO: validate inputs.
+    # TODO: validate inputs. In particular, check that the s-th PK corresponds
+    # to the SK (same modulus).
 
     pks = process_pks(pks_pem)
 

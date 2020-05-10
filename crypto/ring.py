@@ -25,7 +25,8 @@ class Ring:
         self.ring_size = len(self.pks)
 
         # Find exponent of smallest power of 2 greater than all moduli.
-        self.b = (max([pk.public_numbers().n for pk in pks]) - 1).bit_length()
+        b = (max([pk.public_numbers().n for pk in pks]) - 1).bit_length() + 160
+        self.b = b - b % 128 + 128
 
     def _g(self, m, pk_nums, sk=None):
         """
@@ -50,12 +51,15 @@ class Ring:
 
         # TODO: Maybe a more efficient way to do this if statement
         if (q + 1) * n <= 2 ** self.b:
+            if sk:
+                print("HEREEE", sk, pk_nums.n == sk.public_key().public_numbers().n)
             # TODO: Isn't this pow(...) stuff like rolling our own
             # crypto? Shouldn't the trapdoor and invert be pre-done
 
             # This is safe to do: this code will only run locally on the
             # machine of the person that holds the secret key.
             exponent = pk_nums.e if not sk else sk.private_numbers().d
-            return q * n + pow(m, exponent, n)
+            base = r if not sk else m - q * n
+            return q * n + pow(base, exponent, n)
         else:
             return m

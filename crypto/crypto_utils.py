@@ -62,9 +62,11 @@ class Trapdoor_Perm:
         # Sanity check
         assert(type(m) == int)
 
-        # TODO: 1024 is temporary placeholder
+        length = m.bit_length() // 8 - 1
+        length = length - length % 16 + 16
+
         encryptor = self.cipher.encryptor()
-        ret = encryptor.update(m.to_bytes(1024, "big")) + \
+        ret = encryptor.update(m.to_bytes(length, "big")) + \
               encryptor.finalize()
 
         return int.from_bytes(ret, "big")
@@ -82,9 +84,11 @@ class Trapdoor_Perm:
         # Sanity check
         assert(type(y) == int)
 
-        # TODO: 64 is temporary placeholder
+        length = y.bit_length() // 8 - 1
+        length = length - length % 16 + 16
+
         decryptor = self.cipher.decryptor()
-        ret = decryptor.update(y.to_bytes(1024, "big")) + \
+        ret = decryptor.update(y.to_bytes(length, "big")) + \
               decryptor.finalize()
 
         return int.from_bytes(ret, "big")
