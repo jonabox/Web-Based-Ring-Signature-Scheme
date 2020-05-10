@@ -1,32 +1,46 @@
 <template>
-  <div class="home">
-    Home. {{ key }}
-    <br />
-    <v-button id="download_link" download="keypair.txt" href=""> Download keypair as text file</v-button>
-  </div>
+  <v-app>
+    <v-app-bar
+      app
+      color="primary"
+      dark
+    >
+      <div class="d-flex align-center">
+        <h3>
+          Web Based Ring Signature Scheme
+        </h3>
+      </div>
+
+      <v-spacer></v-spacer>
+
+      <v-btn
+        href="https://github.com/jonabox/Web-Based-Ring-Signature-Scheme"
+        target="_blank"
+        text
+      >
+        <span class="mr-2">View Project on GitHub</span>
+        <v-icon>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-app-bar>
+
+    <v-content>
+      <HelloWorld/>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
-import axios from "axios";
+import HelloWorld from './components/HelloWorld';
+
 export default {
-  name: "home",
-  data() {
-    return {
-      key: "key not yet updated."
-    };
+  name: 'App',
+
+  components: {
+    HelloWorld,
   },
-  mounted: function() {
-    var text = "Public Key: 43242344 \nSecret Key: 20348932805";
-    var data = new Blob([text], { type: "text/plain" });
-    var url = window.URL.createObjectURL(data);
-    document.getElementById("download_link").href = url;
-    axios
-      .get("http://127.0.0.1:5000/key")
-      .then(response => {
-        console.log(response);
-        this.key = response.data;
-      })
-      .catch(error => console.log(error));
-  }
+
+  data: () => ({
+    //
+  }),
 };
 </script>
