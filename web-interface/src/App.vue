@@ -1,26 +1,46 @@
 <template>
-  <div class="home">
-    Home. {{ key }}
-  </div>
+  <v-app>
+    <v-app-bar
+      app
+      color="primary"
+      dark
+    >
+      <div class="d-flex align-center">
+        <h3>
+          Web Based Ring Signature Scheme
+        </h3>
+      </div>
+
+      <v-spacer></v-spacer>
+
+      <v-btn
+        href="https://github.com/jonabox/Web-Based-Ring-Signature-Scheme"
+        target="_blank"
+        text
+      >
+        <span class="mr-2">View Project on GitHub</span>
+        <v-icon>mdi-open-in-new</v-icon>
+      </v-btn>
+    </v-app-bar>
+
+    <v-content>
+      <HelloWorld/>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
-import axios from "axios";
+import HelloWorld from './components/HelloWorld';
+
 export default {
-  name: "home",
-  data() {
-    return {
-      key: "key not yet updated."
-    };
+  name: 'App',
+
+  components: {
+    HelloWorld,
   },
-  created: function() {
-    axios
-      .get("http://127.0.0.1:5000/key")
-      .then(response => {
-        console.log(response);
-        this.key = response.data;
-      })
-      .catch(error => console.log(error));
-  }
+
+  data: () => ({
+    //
+  }),
 };
 </script>
