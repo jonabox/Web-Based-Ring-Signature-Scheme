@@ -17,7 +17,7 @@ import secrets
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 
-from crypto_utils import Trapdoor_Perm, byte_xor
+from crypto_utils import Trapdoor_Perm
 from ring import Ring
 
 class Signer(Ring):
@@ -34,8 +34,6 @@ class Signer(Ring):
         super().__init__(pks)
         self.s = s
         self.sk = sk
-        for i in range(self.ring_size):
-            print(i, self.pks[i].public_numbers().n == self.sk.public_key().public_numbers().n)
 
     def ring_sign(self, m):
         """
