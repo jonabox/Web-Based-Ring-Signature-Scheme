@@ -49,7 +49,6 @@ class Ring:
         q = m // n
         r = m - q * n
 
-        # TODO: Maybe a more efficient way to do this if statement
         if (q + 1) * n <= 2 ** self.b:
             # This is safe to do: this code will only run locally on the
             # machine of the person that holds the secret key.

@@ -18,7 +18,7 @@ from cryptography.hazmat.primitives import serialization
 from verifier import Verifier
 
 
-def parse_signature_file(signature_file):
+def _parse_signature_file(signature_file):
     """
     Parses the signature file to the appropriate Python objects.
 
@@ -74,7 +74,7 @@ def verify(m, signature_file):
     Returns:
         True if the signature is valid, and False otherwise.
     """
-    pks, sigma = parse_signature_file(signature_file)
+    pks, sigma = _parse_signature_file(signature_file)
 
     verifier = Verifier(pks)
 

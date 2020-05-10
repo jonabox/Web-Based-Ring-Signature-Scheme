@@ -57,12 +57,12 @@ class Signer(Ring):
         # Step 3: pick random x_i's for all other ring members.
         #
         # Construct all of the `x_i` and `y_i``s except for those
-        # at index `self.s` which needs to be solved for
+        # at index `self.s` which needs to be solved for.
         x_i = []
         y_i = []
         for i in range(self.ring_size):
             if i == self.s:
-                # Still do not know what our values
+                # Still do not know what our values are.
                 x_i.append(None)
                 y_i.append(None)
             else:

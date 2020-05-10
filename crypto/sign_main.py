@@ -19,8 +19,12 @@ from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPriva
 
 from signer import Signer
 
+
+class RingSignException(Exception):
+    pass
+
 # TODO: maybe but this function in one common file.
-def process_pks(pks_pem):
+def _process_pks(pks_pem):
     """
     Converts the public keys from PEM format to a list of RSAPublicKey objects.
 
@@ -45,7 +49,7 @@ def process_pks(pks_pem):
     return pks
 
 
-def write_to_file(sigma, output_file):
+def _write_to_file(sigma, output_file):
     """
     Writes the signature to an output file.
 
@@ -73,6 +77,30 @@ def write_to_file(sigma, output_file):
             output_file.write(elt)
 
 
+def _validate_inputs(m, pks_pem, s, sk_pem):
+    print(pks_pem[-4:])
+    if not isinstance(m, str):
+        raise RingSignException("The message must be a string.")
+    if pks_pem[-4:] != ".pem":
+        raise RingSignException("The file containing the public keys must be" +
+                                " a PEM file.")
+    if sk_pem[-4:] != ".pem":
+        raise RingSignException("The file containing the secret key must be a" +
+                                " PEM file.")
+    try:
+        int(s)
+    except:
+        raise RingSignException("The index 's' must be an integer.")
+
+
+def _check_signer_keys(pks, s, sk):
+    if not 0 <= s <= len(pks):
+        raise RingSignException("The index 's' must be between 0 and the number \
+                                of public keys.")
+    if not pks[s].public_numbers().n == sk.public_key().public_numbers().n:
+        raise RingSignException("The public key specified by the index 's'" +
+                                " does not correspond to the secret key.")
+
 def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
     """
     Crafts a ring signature for the message m, based on the SK and PK(s).
@@ -88,25 +116,33 @@ def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
     Returns:
         Confirmation of success. Saves signature to output_file.
     """
-    # TODO: validate inputs. In particular, check that the s-th PK corresponds
-    # to the SK (same modulus).
+    _validate_inputs(m, pks_pem, s, sk_pem)
 
-    pks = process_pks(pks_pem)
+    pks = _process_pks(pks_pem)
 
     s = int(s)
 
     sk_password = pwd if pwd else getpass.getpass(prompt="Secret key password:")
     sk = None
     with open(sk_pem, "rb") as key_file:
-        sk = serialization.load_pem_private_key(
-            key_file.read(),
-            password=sk_password.encode(),
-            backend=default_backend())
+        try:
+            sk = serialization.load_pem_private_key(
+                key_file.read(),
+                password=sk_password.encode(),
+                backend=default_backend())
+        except ValueError:
+            raise RingSignException("The entered password was incorrect.")
 
-    signer = Signer(pks, s, sk)
+    _check_signer_keys(pks, s, sk)
+
+    try:
+        signer = Signer(pks, s, sk)
+    except:
+        raise RingSignException("Some error occured. Check that all your keys" +
+        "are valid.")
 
     sigma = signer.ring_sign(m.encode())
-    write_to_file(sigma, output_file)
+    _write_to_file(sigma, output_file)
     return "Signature saved in " + output_file
 
 if __name__ == '__main__':
