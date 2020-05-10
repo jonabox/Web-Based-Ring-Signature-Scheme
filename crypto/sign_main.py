@@ -35,9 +35,9 @@ def process_pks(pks_pem):
         key = b""
         for line in keys_file:
             key += line
-            if line == b"-----BEGIN PUBLIC KEY-----\n":
+            if b"BEGIN PUBLIC KEY" in line:
                 key = line
-            elif line == b"-----END PUBLIC KEY-----\n":
+            elif b"END PUBLIC KEY" in line:
                 pk = serialization.load_pem_public_key(
                     key, backend=default_backend())
                 pks.append(pk)
@@ -86,7 +86,7 @@ def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
         output_file: name of file where the signature should be saved.
 
     Returns:
-        The signature.
+        Confirmation of success. Saves signature to output_file.
     """
     # TODO: validate inputs. In particular, check that the s-th PK corresponds
     # to the SK (same modulus).
@@ -107,7 +107,7 @@ def sign(m, pks_pem, s, sk_pem, output_file, pwd=None):
 
     sigma = signer.ring_sign(m.encode())
     write_to_file(sigma, output_file)
-
+    return "Signature saved in " + output_file
 
 if __name__ == '__main__':
     # The first command-line argument is the module name.
