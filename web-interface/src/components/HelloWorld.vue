@@ -3,6 +3,7 @@
     <v-tabs v-model="tab" background-color="transparent" grow>
       <v-tab>Sign</v-tab>
       <v-tab>Verify</v-tab>
+      <v-tab>Generate Key Pairs</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item>
@@ -35,6 +36,18 @@
         </v-card>
       </v-tab-item>
       <v-tab-item>
+        <v-alert
+          v-if="displayVerified"
+          text
+          color="primary"
+          type="success"
+        >The message is associated with this ring signature.</v-alert>
+        <v-alert
+          v-if="displayNotVerified"
+          text
+          color="error"
+          type="error"
+        >The message is not associated with this ring signature.</v-alert>
         <v-card flat>
           <v-file-input
             chips
@@ -46,29 +59,26 @@
           <v-btn v-on:click="submitDataVerify()" color="primary">Submit</v-btn>
         </v-card>
       </v-tab-item>
+      <v-tab-item>
+        <h3 class="font-weight-regular">Don't have any key pairs? Run the following commands:</h3>
+        <br />
+        <v-timeline dense>
+          <v-timeline-item>
+            <v-card class="elevation-2">
+              <v-card-title class="headline">generate encrypted key pair:</v-card-title>
+              <v-card-text>$openssl genrsa -out [FILENAME].pem -aes128 -passout pass:[PASSWORD] 2048</v-card-text>
+            </v-card>
+          </v-timeline-item>
+          <v-timeline-item>
+            <v-card class="elevation-2">
+              <v-card-title class="headline">extract public key:</v-card-title>
+              <v-card-text>$openssl rsa -in [FILENAME].pem -pubout -out [filename1].pem</v-card-text>
+            </v-card>
+          </v-timeline-item>
+        </v-timeline>
+      </v-tab-item>
     </v-tabs-items>
-
-    <h3>Don't have any key pairs? Run the following commands:</h3>
     <br />
-    <v-timeline dense>
-      <v-timeline-item>
-        <v-card class="elevation-2">
-          <v-card-title class="headline">generate encrypted key pair:</v-card-title>
-          <v-card-text>$openssl genrsa -out [FILENAME].pem -aes128 -passout pass:[PASSWORD] 2048</v-card-text>
-        </v-card>
-      </v-timeline-item>
-      <v-timeline-item>
-        <v-card class="elevation-2">
-          <v-card-title class="headline">extract public key:</v-card-title>
-          <v-card-text>$openssl rsa -in [FILENAME].pem -pubout -out [filename1].pem</v-card-text>
-        </v-card>
-      </v-timeline-item>
-    </v-timeline>
-    Index: {{ index }}
-    Message: {{ message }}
-    Key: {{ key }}
-    <br />
-    <a id="download_link" download="keypair.txt" href>Download keypair as text file</a>
   </div>
 </template>
 
@@ -85,7 +95,9 @@ export default {
       signatureFile: "",
       index: "",
       message: "",
-      password: ""
+      password: "",
+      displayVerified: false,
+      displayNotVerified: false
     };
   },
   methods: {
@@ -151,10 +163,17 @@ export default {
 
       // add message to form data
       formData.append("message", this.message);
+      this.displayVerified = false;
+      this.displayNotVerified = false;
 
       axios
         .post("http://127.0.0.1:5000/verification", formData)
         .then(response => {
+          if (response.data === "True") {
+            this.displayVerified = true;
+          } else if (response.data === "False") {
+            this.displayNotVerified = true;
+          }
           console.log("Success!");
           console.log({ response });
         })

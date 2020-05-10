@@ -52,7 +52,7 @@ def signature():
         index = request.form['index']
         message = request.form['message']
         password = request.form['password']
-        sign(message, "../uploads/public_keys.pem", index, "../uploads/secret_key.pem", "../output.pem", password )
+        sign(message, "../uploads/public_keys.pem", index, "../uploads/secret_key.pem", "../ring-signature.pem", password )
         return "message has been signed!"
 
 @app.route('/verification', methods=['POST'])
@@ -63,11 +63,10 @@ def verification():
         if 'message' not in request.form:
             return 'No valid message', 400
         message = request.form['message']
-        print("result:")
-        print(verify(message, "../uploads/signature.pem"))
+        result = verify(message, "../uploads/signature.pem")
         print("done")
-        return "message has been verified!"
-        
+        print(result)
+        return(str(result))
 
 @app.route('/secret_key', methods=['GET', 'POST'])
 def upload_sk():
