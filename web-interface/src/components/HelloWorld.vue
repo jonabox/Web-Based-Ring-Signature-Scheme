@@ -53,7 +53,7 @@
             chips
             label="Attach .txt file that contains the signature"
             @change="onAddSignature"
-            accept=".pem"
+            accept=".txt"
           ></v-file-input>
           <v-text-field prepend-icon="mdi-text" label="Enter message to verify" v-model="message"></v-text-field>
           <v-btn v-on:click="submitDataVerify()" color="primary">Submit</v-btn>
