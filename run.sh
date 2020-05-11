@@ -1,3 +1,4 @@
-export FLASK_APP=cryptoServer.py
-flask run
-npx
+python3 crypto/cryptoServer.py &
+cd web-interface
+npm run serve &
+cd ..
