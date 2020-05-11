@@ -55,7 +55,7 @@ def signature():
         password = request.form['password']
         try:
             sign(message, "../uploads/public_keys.pem", index,"../uploads/secret_key.pem", "../ring-signature.txt", password)
-            return "Message has been signed! Singature.txt was created in local directory."
+            return "Message has been signed! ring-signature.txt was created in local directory."
 
         except RingSignException as error:
             return str(error), 400

@@ -17,6 +17,7 @@
           <v-text-field
             prepend-icon="mdi-format-list-numbered"
             label="Index of your public key within the public keys file"
+            type="password"
             v-model="index"
           ></v-text-field>
           <v-file-input
