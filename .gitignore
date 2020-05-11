@@ -2,7 +2,9 @@
 __pycache__/
 server.pyc
 uploads/
+web-interface/package-lock.json
 crypto/output.txt
+ring-signature.txt
 # Logs
 logs
 *.log

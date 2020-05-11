@@ -1,5 +1,5 @@
 import os
-from sign_main import sign
+from sign_main import sign, RingSignException
 from verify_main import verify
 
 from flask import Flask, request, redirect, url_for
@@ -38,6 +38,7 @@ def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+
 @app.route('/signature', methods=['POST'])
 def signature():
     if request.method == 'POST':
@@ -52,8 +53,13 @@ def signature():
         index = request.form['index']
         message = request.form['message']
         password = request.form['password']
-        sign(message, "../uploads/public_keys.pem", index, "../uploads/secret_key.pem", "../ring-signature.pem", password )
-        return "message has been signed!"
+        try:
+            sign(message, "../uploads/public_keys.pem", index,"../uploads/secret_key.pem", "../ring-signature.txt", password)
+            return "Message has been signed! Singature.txt was created in local directory."
+
+        except RingSignException as error:
+            return str(error), 400
+
 
 @app.route('/verification', methods=['POST'])
 def verification():
@@ -64,9 +70,10 @@ def verification():
             return 'No valid message', 400
         message = request.form['message']
         result = verify(message, "../uploads/signature.pem")
-        print("done")
+        print("done verifying:")
         print(result)
         return(str(result))
+
 
 @app.route('/secret_key', methods=['GET', 'POST'])
 def upload_sk():
@@ -122,6 +129,7 @@ def upload_file():
       <input type=submit value=Upload>
     </form>
     '''
+
 
 @app.route('/signature_file', methods=['POST'])
 def signature_file():

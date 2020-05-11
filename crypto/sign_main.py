@@ -90,12 +90,12 @@ def _validate_inputs(m, pks_pem, s, sk_pem):
     try:
         int(s)
     except:
-        raise RingSignException("The index 's' must be an integer.")
+        raise RingSignException("The index must be an integer.")
 
 
 def _check_signer_keys(pks, s, sk):
     if not 0 <= s <= len(pks):
-        raise RingSignException("The index 's' must be between 0 and the number \
+        raise RingSignException("The index must be between 0 and the number \
                                 of public keys.")
     if not pks[s].public_numbers().n == sk.public_key().public_numbers().n:
         raise RingSignException("The public key specified by the index 's'" +
