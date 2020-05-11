@@ -10,7 +10,16 @@ or
 ```
 pip install flask
 ```
-Then initialize the flask server by running the run.sh file:
+Then initialize the flask server by running the following command in the /crypto directory:
 ```
-./run.sh
+ python3 cryptoServer.py
+```
+Finally initialize the UI server by running the following command in the /web-interface directory:
+```
+ npm run serve
+```
+or for production:
+```
+ npm run build
+ npm run start
 ```
