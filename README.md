@@ -23,3 +23,4 @@ or for production:
  npm run build
  npm run start
 ```
+![Image of Signature Page](https://i.imgur.com/LpSZXtf.png)
